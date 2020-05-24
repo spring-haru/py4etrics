@@ -2,7 +2,7 @@
 Github page:
 """
 
-from .py4etrics import *
+from py4etrics import *
 
 __all__ = ['load']
 
