@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(name='py4etrics',
       packages=find_packages(),
       package_dir={'py4etrics': './py4etrics'},
-      version='0.1.1',
+      version='0.1.2',
       description='Python package for Pythonで学ぶ入門計量経済学',
       author='Tetsu HARUYAMA',
       author_email='haruyama@econ.kobe-u.ac.jp',
