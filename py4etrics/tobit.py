@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 from scipy.stats import norm
 import statsmodels.api as sm
-from modules.base_for_models import GenericLikelihoodModel_TobitTruncreg
+from py4etrics.base_for_models import GenericLikelihoodModel_TobitTruncreg
 
 class Tobit(GenericLikelihoodModel_TobitTruncreg):
     """
