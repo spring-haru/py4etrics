@@ -61,6 +61,7 @@ class Tobit(GenericLikelihoodModel_TobitTruncreg):
 
             Xb = np.dot(x, beta)
 
+            # Eqn 5 of https://cran.r-project.org/web/packages/censReg/vignettes/censReg.pdf
             # scale=np.exp(s)
             left_mle  = left_on *  norm.logcdf( (left-Xb)  / np.exp(s) )
             mid_mle   = mid_on * ( norm.logpdf( (y-Xb)     / np.exp(s) ) - s )
