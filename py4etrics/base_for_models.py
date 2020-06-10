@@ -433,38 +433,6 @@ class AdditionalAttributes_Tobit(object):
                           '**********************************************************************\n')
 
 
-    # Function of APE and PEA
-    @cache_readonly
-    def get_margeff(self):
-        """
-        AME: Average Marginal Effects
-        MEA: Marginal Effects at Average
-        """
-        params = self.params
-        beta = params[:-1]
-        sigma = np.exp(params[-1])
-        names = self.model.exog_names[1:-1]
-        pvals = self.pvalues[1:-1]
-        x = self.exog
-
-        # Average Partial Effects
-        num_beta = len(beta)
-        apeX = (x @ beta.reshape((num_beta,1)))/sigma
-        cdf_mean = norm.cdf(apeX).mean()
-        ape = cdf_mean*params[1:-1]
-
-        # Partial Effects at Average
-        x_mean = x.mean(axis=0)
-        x_vector = x_mean.reshape((1,len(x_mean)))
-        beta_vector = beta.reshape((len(beta),1))
-        peaX = (x_vector @ beta_vector)/sigma
-        cdf_at_mean = norm.cdf(np.squeeze(peaX))
-        pea = cdf_at_mean*params[1:-1]
-
-        return pd.DataFrame({'Coef':beta[1:],'APE':ape, 'PEA':pea,
-                             'P-value':pvals}, index=names
-                           ).round({'Coef':2,'APE':2, 'PEA':2,'P-value':4})
-
     # censoring
     @cache_readonly
     def obs(self):
