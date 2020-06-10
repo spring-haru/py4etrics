@@ -1,33 +1,36 @@
 """
 Created by Tetsu Haruyama
-Last modified 13 July 2019
+Last modified 13 June 2020
 """
 
 import warnings
 import numpy as np
 from scipy.stats import norm
 import statsmodels.api as sm
-from py4etrics.base_for_models import GenericLikelihoodModel_TobitTruncreg
+from modules.base_for_models import GenericLikelihoodModel_TobitTruncreg
 
 class Tobit(GenericLikelihoodModel_TobitTruncreg):
     """
-    Create a column in DataFrame (to be used for "cens" below)
+    Create a Seires or array (to be used for "<censor>" below)
            -1: left-censored
             0: uncensored
             1: right-censored
 
     Method 1:
-    Tobit(endog, exog, cens=<COLUMN NAME>, left=<0>, right=<0>).fit()
+    Tobit(endog, exog, cens=<censor>, left=<0>, right=<0>).fit()
     endog = dependent variable
     exog = independent variable (add constant if needed)
     cens = see above
     left = the threshold value for left-censoring (default:0)
+        　　(This becomes effective only if -1 is set in <censor>)
     right = the threshold value for right-censoring (default:0)
-
+        　　(This becomes effective only if 1 is set in <censor>)
+          
     Method 2:
     formula = 'y ~ 1 + x'
-    Tobit.from_formula(formula, cens=<COLUMN NAME>, left=<0>, right=<0>, data=<DATA>).fit()
-    """
+    Tobit.from_formula(formula, cens=<censor>, left=<0>, right=<0>, data=<DATA>).fit()
+  
+  """
 
     def __init__(self, endog, exog, cens, left=None, right=None, **kwds):
         super(Tobit, self).__init__(endog, exog, **kwds)
@@ -41,39 +44,58 @@ class Tobit(GenericLikelihoodModel_TobitTruncreg):
 
     def loglikeobs(self, params): # see _tobit()
 #     def loglike(self, params): # see _tobit()
+
         s = params[-1]
         beta = params[:-1]
 
-        def _tobit(y,x,z,left,right,beta,s):
-            if (~np.isin(z,[-1,0,1])).any():
+        def _tobit(y, x, z, left, right, beta, s):
+            if ( ~np.isin(z,[-1,0,1]) ).any():
                 warnings.warn('\n\n***************************************************\n\n'+
                               'There are values other than [-1,0,1] in a column for cens\n\n'+
                              '***************************************************\n')
+
             # indicators
-            left_on = np.where(z==-1, 1, 0)
-            mid_on = np.where(z==0, 1, 0)
-            right_on = np.where(z==1, 1, 0)
+            left_on  = np.where(z==-1, 1, 0)
+            mid_on   = np.where(z== 0, 1, 0)
+            right_on = np.where(z== 1, 1, 0)
 
             Xb = np.dot(x, beta)
 
-            left_mle = left_on * norm.logsf(Xb, loc=left, scale=np.exp(s))
-            mid_mle = mid_on * ( -s  + norm.logpdf(y, loc=np.dot(x, beta), scale=np.exp(s)) )
-            right_mle = right_on * norm.logcdf(Xb, loc=right, scale=np.exp(s))
-        #     return (left_mle+mid_mle+right_mle).sum()  #  loglike()
-            return left_mle+mid_mle+right_mle  #  nloglikeobs()
+            # scale=np.exp(s)
+            
+            # ML Case 1:
+            # coefficient estimates are more precise
+            # NOTE: s^2 = Standard Deviation of 残差 (Standard Error of Regression)
+            left_mle  = left_on *  norm.logcdf( (left-Xb) / np.exp(s), loc=0, scale=np.exp(s))
+            mid_mle   = mid_on * ( norm.logpdf( (y-Xb) / np.exp(s),    loc=0, scale=np.exp(s)) - s )
+            right_mle = right_on * norm.logcdf( (Xb-right) / np.exp(s),loc=0, scale=np.exp(s))
+            
+            # ML Case 2:
+            # coefficient estimates are less precise
+            # NOTE: s = Standard Deviation of 残差 (Standard Error of Regression)
+            # loc in left_mle/right_mle is determined like Truncreg
+#             left_mle  = left_on *  norm.logcdf( -Xb, loc=(left-Xb)/np.exp(s),  scale=np.exp(s))
+#             mid_mle   = mid_on *   norm.logpdf( y,   loc=Xb,                   scale=np.exp(s))
+#             right_mle = right_on * norm.logcdf( Xb,  loc=(Xb-right)/np.exp(s), scale=np.exp(s))
+            
+            return left_mle + mid_mle + right_mle  #  loglikeobs()                        
+#             return (left_mle+mid_mle+right_mle).sum()  #  loglike()
 
         return _tobit(self.endog, self.exog, self.cens, self.left, self.right, beta, s)
 
     def fit(self, cov_type='nonrobust', start_params=None, maxiter=10000, maxfun=10000, **kwds):
+        
         # add sigma for summary
-        if 'Log(Sigma)' not in self.exog_names:
-            self.exog_names.append('Log(Sigma)')
+        if 'Root(Log(Sigma))' not in self.exog_names:  # ML Case 1 is used
+            self.exog_names.append('Root(Log(Sigma))')
         else:
             pass
+        
         # initial guess
         res = sm.OLS(self.endog, self.exog).fit()
         ols_params = res.params
         ols_sigma = np.log(np.std(res.resid))
+        
         # option
         if start_params == None:
             start_params = np.append(ols_params, ols_sigma)
@@ -81,5 +103,3 @@ class Tobit(GenericLikelihoodModel_TobitTruncreg):
         res = super(Tobit, self).fit(cov_type=cov_type, start_params=start_params,
                                      maxiter=maxiter, maxfun=maxfun, **kwds)
         return res
-
-# EOF
