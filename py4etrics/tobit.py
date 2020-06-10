@@ -62,21 +62,9 @@ class Tobit(GenericLikelihoodModel_TobitTruncreg):
             Xb = np.dot(x, beta)
 
             # scale=np.exp(s)
-            
-            # ML Case 1:
-            # coefficient estimates are more precise
-            # NOTE: s^2 = Standard Deviation of 残差 (Standard Error of Regression)
-            left_mle  = left_on *  norm.logcdf( (left-Xb) / np.exp(s), loc=0, scale=np.exp(s))
-            mid_mle   = mid_on * ( norm.logpdf( (y-Xb) / np.exp(s),    loc=0, scale=np.exp(s)) - s )
-            right_mle = right_on * norm.logcdf( (Xb-right) / np.exp(s),loc=0, scale=np.exp(s))
-            
-            # ML Case 2:
-            # coefficient estimates are less precise
-            # NOTE: s = Standard Deviation of 残差 (Standard Error of Regression)
-            # loc in left_mle/right_mle is determined like Truncreg
-#             left_mle  = left_on *  norm.logcdf( -Xb, loc=(left-Xb)/np.exp(s),  scale=np.exp(s))
-#             mid_mle   = mid_on *   norm.logpdf( y,   loc=Xb,                   scale=np.exp(s))
-#             right_mle = right_on * norm.logcdf( Xb,  loc=(Xb-right)/np.exp(s), scale=np.exp(s))
+            left_mle  = left_on *  norm.logcdf( (left-Xb)  / np.exp(s) )
+            mid_mle   = mid_on * ( norm.logpdf( (y-Xb)     / np.exp(s) ) - s )
+            right_mle = right_on * norm.logcdf( (Xb-right) / np.exp(s) )
             
             return left_mle + mid_mle + right_mle  #  loglikeobs()                        
 #             return (left_mle+mid_mle+right_mle).sum()  #  loglike()
