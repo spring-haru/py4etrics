@@ -75,8 +75,8 @@ class Tobit(GenericLikelihoodModel_TobitTruncreg):
     def fit(self, cov_type='nonrobust', start_params=None, maxiter=10000, maxfun=10000, **kwds):
         
         # add sigma for summary
-        if 'Root(Log(Sigma))' not in self.exog_names:  # ML Case 1 is used
-            self.exog_names.append('Root(Log(Sigma))')
+        if 'Log(Sigma)' not in self.exog_names:  # ML Case 1 is used
+            self.exog_names.append('Log(Sigma)')
         else:
             pass
         
