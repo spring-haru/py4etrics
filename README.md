@@ -1,6 +1,11 @@
 # `py4etrics`
 
-This module is for [Pythonで学ぶ入門計量経済学](https://py4etrics.github.io/)
+This module is for
+* Truncated Regression
+* Tobit Model
+* Heckit Model
+
+[Pythonで学ぶ入門計量経済学](https://py4etrics.github.io/) explains how to use it (in Japanese).
 
 ### How to Use
 ```
