@@ -1,6 +1,6 @@
 # `py4etrics`
 
-This module is for Pythonで学ぶ入門計量経済学
+This module is for [Pythonで学ぶ入門計量経済学](https://py4etrics.github.io/)
 
 ### How to Use
 ```
