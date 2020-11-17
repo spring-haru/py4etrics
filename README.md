@@ -5,7 +5,8 @@ This module is for
 * Tobit Model
 * Heckit Model
 
-[Pythonで学ぶ入門計量経済学](https://py4etrics.github.io/) explains how to use it (in Japanese).
+[Pythonで学ぶ入門計量経済学](https://py4etrics.github.io/) explains how to use it in Japanese. 
+Or click its [Google translated version in English](https://translate.google.com/translate?sl=ja&tl=en&u=https%3A%2F%2Fpy4etrics.github.io) if you are happy with it. 
 
 ### How to Use
 ```
